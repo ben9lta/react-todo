@@ -12,7 +12,6 @@ class newItemPage extends React.Component {
       title:'',
       text:'',
       items:[],
-      showData: null,
       dataSource: ds.cloneWithRows(['row 1', 'row 2']),
     }
     this.setSource = this.setSource.bind(this);
@@ -21,10 +20,9 @@ class newItemPage extends React.Component {
   }
 
   componentDidMount(){
+    console.log(this.props.navigation)
     if(!this.state.loading) return
     this.asyncData();
-    console.log(this.props.navigation.state.params)
-    
     
   }
 
@@ -49,15 +47,7 @@ class newItemPage extends React.Component {
 
 
 
-  showData = async() => {
-    let items = await AsyncStorage.getItem('newItem')
-    let data = JSON.parse(items)
-    console.log('------------------------')
-    console.log(data)
-    //this.setSource(data, data, {loading: false});
-    // App.showData();
-    
-  }
+  
 
   saveData = () => {
     
@@ -75,19 +65,17 @@ class newItemPage extends React.Component {
     ]
     AsyncStorage.setItem('newItem', JSON.stringify(newItems));
     this.setSource(newItems, newItems, { title: '', text: '',})
-
-    this.props.navigation.state.params.showData()
     
-    this.props.navigation.navigate('Home', console.log(newItems), {
+    this.props.navigation.navigate('home', console.log(newItems), {
         items: this.state.items,
         // asyncData
     });
 
     // this.showData();
     //this.setSource(data, data, {loading: false});
-
-
+    this.showData
     Keyboard.dismiss();
+
 
 
     Alert.alert('Данные добавлены');

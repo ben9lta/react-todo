@@ -1,14 +1,7 @@
 import React from 'react';
 import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView, TouchableOpacity, TouchableElement, AsyncStorage, Button, Keyboard, Alert, ListView, Row } from 'react-native';
-import { createStackNavigator, createAppContainer } from "react-navigation";
-import { HeaderBackButton } from 'react-navigation';
 
-import newItemPage from './nav/newItemPage'
-import Home from './nav/home'
-import selectedItemPage from './nav/selectedItemPage'
-
-
-class App extends React.Component {
+class Home extends React.Component {
   constructor(props){
     super(props);
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
@@ -74,7 +67,16 @@ class App extends React.Component {
     })
   }
 
-   
+  clickOnItem = async(item) => {
+    try {
+      await AsyncStorage.removeItem(item);
+      return true;
+    }
+    catch(exception) {
+      return false;
+    }
+  }
+  
   showData = async() => {
     let items = await AsyncStorage.getItem('newItem')
     let data = JSON.parse(items)
@@ -92,97 +94,45 @@ class App extends React.Component {
     });
     AsyncStorage.setItem('newItem', JSON.stringify(items));
   }
-  
+
+  OpenSelectedItem = (data) =>{
+    this.props.navigation.navigate('selectedItemPage', { data: data });
+    console.log(data)
+  }
+
 
   render() {
-    // if(this.props.navigation.isFocused()) return console.log('----------->tuta<----------');
     return (
-      <AppNavigator/>
-      // <View style={styles.container}>
-      //   <ListView 
-      //       style={styles.list}
-      //       dataSource={this.state.dataSource}
-      //       renderRow={(data) =>
-      //         <View style={styles.dataView}>
-      //           <Text style={styles.dataViewTitle}>{data.title}</Text>
-      //         </View>}
-      //         renderSeparator={(sectionId, rowId) => <View key={rowId} style={styles.separator} />}
-      //   >
-      //   </ListView>
-      //   <Button title="Показать данные" onPress={() => {this.showData()}}></Button>
+      <View style={styles.container}>
+        <ListView 
+            style={styles.list}
+            dataSource={this.state.dataSource}
+            renderRow={(data) =>
+              <View style={styles.dataView} >
+                {/* <Text style={styles.dataViewTitle} onPress={this.OpenSelectedItem.bind(this, data)}>{data.title}</Text> */}
+                <Text style={styles.dataViewTitle} onPress={() => {this.props.navigation.navigate('selectedItemPage', { dataItem: data } )}}>
+                  {data.title}
+                </Text>
+              </View>}
+              renderSeparator={(sectionId, rowId) => <View key={rowId} style={styles.separator} />}
+                
+        >
+        </ListView>
+        <Button title="Показать данные" onPress={() => {this.showData()}}></Button>
 
-      //   <TouchableOpacity style={styles.bottomButton} onPress={() => this.props.navigation.navigate('newItemPage', { id: 213, showData: this.showData })}>
-      //       <Text style={styles.addText}>+</Text>
-      //     {/* <Button title="Перейти" onPress={() => this.props.navigation.navigate('newItemPage')} ></Button> */}
-      //   </TouchableOpacity>
+        <TouchableOpacity style={styles.bottomButton} onPress={() => this.props.navigation.navigate('newItemPage', { id: 213, showData: this.showData })}>
+            <Text style={styles.addText}>+</Text>
+          {/* <Button title="Перейти" onPress={() => this.props.navigation.navigate('newItemPage')} ></Button> */}
+        </TouchableOpacity>
         
-      // </View>
+      </View>
     );
   }
 }
 
-AppRegistry.registerComponent('newItemPage', () => App);
 
-const AppNavigator = createStackNavigator(
-  {
-    Home: {
-      // screen: App,
-      screen: Home,
-      navigationOptions: {
-        headerStyle: {
-          backgroundColor: '#1D76A6',
-          // backgroundColor: '#333333',
+export default Home;
 
-        },
-        headerTintColor: '#FFFFFF',
-        // headerTintColor: '#DC2509',
-        title: 'Заметки',
-      },
-    },
-    newItemPage: {
-      screen: newItemPage,
-      navigationOptions: ({navigation}) => ({
-        headerStyle: {
-          backgroundColor: '#1D76A6',
-
-        },
-        headerTintColor: '#FFFFFF',
-        title: 'Новая заметка',
-        headerLeft: <HeaderBackButton onPress={() => navigation.goBack()}></HeaderBackButton>,
-      }),
-    },
-    selectedItemPage: {
-      screen: selectedItemPage,
-      navigationOptions: ({navigation}) => ({
-        headerStyle: {
-          backgroundColor: '#1D76A6',
-
-        },
-        headerTintColor: '#FFFFFF',
-        // title: 'Выбраный айтем',
-        headerLeft: <HeaderBackButton onPress={() => navigation.goBack()}></HeaderBackButton>,
-      }),
-    },
-    // selectedItemPage: {
-    //   screen: selectedItemPage,
-    //   navigationOptions: ({navigation}) => ({
-    //     headerStyle: {
-    //       backgroundColor: '#1D76A6',
-
-    //     },
-    //     headerTintColor: '#FFFFFF',
-    //     title: 'ТУТ ТАЙТЛ ВЫБРАНОЙ',
-    //     headerLeft: <HeaderBackButton onPress={() => navigation.goBack()}></HeaderBackButton>,
-    //   }),
-    // }
-    
-  },
- 
-);
-
-const AppContainer = createAppContainer(AppNavigator);
-//export default createAppContainer(AppNavigator);
-export default AppContainer;
 
 const styles = StyleSheet.create({
   container: {
