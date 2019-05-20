@@ -8,6 +8,7 @@ import Home from './nav/home'
 import selectedItemPage from './nav/selectedItemPage'
 
 
+
 class App extends React.Component {
   constructor(props){
     super(props);
@@ -163,19 +164,7 @@ const AppNavigator = createStackNavigator(
         headerLeft: <HeaderBackButton onPress={() => navigation.goBack()}></HeaderBackButton>,
       }),
     },
-    // selectedItemPage: {
-    //   screen: selectedItemPage,
-    //   navigationOptions: ({navigation}) => ({
-    //     headerStyle: {
-    //       backgroundColor: '#1D76A6',
-
-    //     },
-    //     headerTintColor: '#FFFFFF',
-    //     title: 'ТУТ ТАЙТЛ ВЫБРАНОЙ',
-    //     headerLeft: <HeaderBackButton onPress={() => navigation.goBack()}></HeaderBackButton>,
-    //   }),
-    // }
-    
+        
   },
  
 );

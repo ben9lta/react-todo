@@ -15,6 +15,7 @@ class Home extends React.Component {
     }
     this.setSource = this.setSource.bind(this);
     this.showData = this.showData.bind(this);
+    this.renderData = this.renderData.bind(this);
     // this.saveData = this.saveData.bind(this);
   }
   saveData = () => {
@@ -42,7 +43,7 @@ class Home extends React.Component {
   componentDidMount(){
     
     this.asyncData()
-    // AsyncStorage.clear();
+    //AsyncStorage.clear();
   }
 
   
@@ -87,6 +88,7 @@ class Home extends React.Component {
   }
 
   setSource(items,itemsDatasource, otherState = {}) {
+
     this.setState({
       items, 
       dataSource: this.state.dataSource.cloneWithRows(itemsDatasource),
@@ -95,9 +97,17 @@ class Home extends React.Component {
     AsyncStorage.setItem('newItem', JSON.stringify(items));
   }
 
-  OpenSelectedItem = (data) =>{
+  OpenSelectedItem = (data) => {
     this.props.navigation.navigate('selectedItemPage', { data: data });
-    console.log(data)
+    // console.log(data)
+  }
+
+  renderData = async(_items) => {
+    AsyncStorage.setItem('newItem', JSON.stringify(_items));
+    let items = await AsyncStorage.getItem('newItem')
+    let data = JSON.parse(items)
+    this.setSource(data, data, {loading: false});
+  
   }
 
 
@@ -108,19 +118,26 @@ class Home extends React.Component {
             style={styles.list}
             dataSource={this.state.dataSource}
             renderRow={(data) =>
-              <View style={styles.dataView} >
-                {/* <Text style={styles.dataViewTitle} onPress={this.OpenSelectedItem.bind(this, data)}>{data.title}</Text> */}
-                <Text style={styles.dataViewTitle} onPress={() => {this.props.navigation.navigate('selectedItemPage', { dataItem: data } )}}>
-                  {data.title}
-                </Text>
-              </View>}
-              renderSeparator={(sectionId, rowId) => <View key={rowId} style={styles.separator} />}
+            <View style={styles.dataView} >
+              {/* <Text style={styles.dataViewTitle} onPress={this.OpenSelectedItem.bind(this, data)}>{data.title}</Text> */}
+              <Text style={styles.dataViewTitle} onPress={() => {
+                this.props.navigation.navigate('selectedItemPage', { 
+                  dataItem: data, 
+                  allData: this.state.items, 
+                  showData: this.showData,
+                  renderData: this.renderData
+                })
+              }}>
+                {data.title}
+              </Text>
+            </View>}
+          renderSeparator={(sectionId, rowId) => <View key={rowId} style={styles.separator} />}
                 
         >
         </ListView>
         <Button title="Показать данные" onPress={() => {this.showData()}}></Button>
 
-        <TouchableOpacity style={styles.bottomButton} onPress={() => this.props.navigation.navigate('newItemPage', { id: 213, showData: this.showData })}>
+        <TouchableOpacity style={styles.bottomButton} onPress={() => this.props.navigation.navigate('newItemPage', { showData: this.showData })}>
             <Text style={styles.addText}>+</Text>
           {/* <Button title="Перейти" onPress={() => this.props.navigation.navigate('newItemPage')} ></Button> */}
         </TouchableOpacity>

@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
-import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView, TouchableOpacity, AsyncStorage, Button, Keyboard, Alert, ListView } from 'react-native';
+import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView,
+        TouchableOpacity, AsyncStorage, Button, Keyboard, Alert, ListView } from 'react-native';
 import App from '../App.js';
+// import MyCalendar from '../components/calendar/calendar'
+
 
 
 class newItemPage extends React.Component {
@@ -14,10 +17,15 @@ class newItemPage extends React.Component {
       items:[],
       showData: null,
       dataSource: ds.cloneWithRows(['row 1', 'row 2']),
+
+      // calendar: false,
+      
+
     }
     this.setSource = this.setSource.bind(this);
     this.showData = this.showData.bind(this);
     this.saveData = this.saveData.bind(this);
+    // this.showCalendar = this.showCalendar.bind(this);
   }
 
   componentDidMount(){
@@ -78,6 +86,7 @@ class newItemPage extends React.Component {
 
     this.props.navigation.state.params.showData()
     
+    
     this.props.navigation.navigate('Home', console.log(newItems), {
         items: this.state.items,
         // asyncData
@@ -102,25 +111,65 @@ class newItemPage extends React.Component {
     AsyncStorage.setItem('newItem', JSON.stringify(items));
   }
 
+  // showCalendar(){
+  //   if(this.state.calendar){
+  //     this.setState({
+  //       calendar: false,
+  //     })
+  //   }
+  //   else
+  //   {
+  //     this.setState({
+  //       calendar: true,
+  //     })
+  //   }
+
+  //   // console.log('asdas')
+  //   // console.log(this.state.calendar)
+  // }
+
 
   render() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-        
+          <View style={styles.header_buttons}>
+            <TouchableOpacity style={{ ...styles.header_button }}
+              onPress={this.saveData}>
+              <Text style={styles.header_button_text}>
+                Сохранить
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.header_button}
+              onPress={this.showData}>
+              <Text style={styles.header_button_text}>
+                Показать данные
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <TextInput placeholder='Заголовок' onChangeText={title => this.setState({title})} style={styles.input}>
+        <TextInput placeholder='Заголовок' onChangeText={title => this.setState({title})} style={styles.input}
+          placeholderTextColor = "#666666">
 
         </TextInput>
-        <TextInput placeholder='Текст' onChangeText={text => this.setState({text})} style={styles.input}>
+        <TextInput placeholder='Текст' onChangeText={text => this.setState({text})} style={styles.input}
+          placeholderTextColor = "#666666">
 
         </TextInput>
-        <Button title='Сохранить'
-        onPress={this.saveData}
-        color='green'></Button>
 
-        <Button title="Показать данные" onPress={this.showData}></Button>
-          
+        <View>
+          {/* <Button onPress={() => this.props.navigation.navigate('MyCalendar')} title={'Выберите дату'}></Button> */}
+          {/* <Button onPress={() => this.showCalendar()} title={'Выберите дату'}></Button> */}
+          {/* <TextInput style={styles.input} placeholder={'Дата'}
+            placeholderTextColor = "#666666" onFocus={this.showCalendar}>
+          </TextInput> */}
+
+          <View>
+            {/* {this.state.calendar ? <MyCalendar></MyCalendar> : null} */}
+          </View>
+        </View>
+        
+       
       </View>
     )
   }
@@ -136,12 +185,45 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#1D76A6',
-    padding: 20,
+      paddingTop: 15,      
+      paddingBottom: 50,
   },
   input: {
     backgroundColor: '#fff', 
-    padding:10,
+    // color: 'blue',
+    color: '#061431',
+    borderColor: 'black',
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
     margin: 10,
 
-  }
+  },
+  header_buttons:{
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  header_button: {
+      width: '40%',
+      right: 1,
+      paddingTop: 10,
+      paddingBottom: 30,
+      alignItems: 'center',
+      backgroundColor: '#CC440E',
+      borderColor: '#EDEEF0',
+      borderRadius: 5,
+      borderWidth: 1,
+      // backgroundColor: '#2BB5FF',        
+      // backgroundColor: '#F30000',
+      // backgroundColor: "#2296F3",
+      // borderRadius: 10,
+
+  },
+  header_button_text: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+
 });
