@@ -2,10 +2,11 @@ import React, { Component } from 'react';
 import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView,
         TouchableOpacity, AsyncStorage, Button, Keyboard, Alert, ListView } from 'react-native';
 import App from '../App.js';
-import DateTimePicker from "react-native-modal-datetime-picker";
+// import MyCalendar from '../components/calendar/calendar'
+
+
 
 class newItemPage extends React.Component {
-  
   constructor(props){
     super(props);
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
@@ -17,24 +18,14 @@ class newItemPage extends React.Component {
       showData: null,
       dataSource: ds.cloneWithRows(['row 1', 'row 2']),
 
-      datePicker: false,
-
-      date: {
-        start: {
-          focus: false,
-          date: '',
-        },
-        end: {
-          focus: false,
-          date: '',
-        },
-      }
+      // calendar: false,
+      
 
     }
     this.setSource = this.setSource.bind(this);
     this.showData = this.showData.bind(this);
     this.saveData = this.saveData.bind(this);
-    //this.showCalendar = this.showCalendar.bind(this);
+    // this.showCalendar = this.showCalendar.bind(this);
   }
 
   componentDidMount(){
@@ -121,82 +112,22 @@ class newItemPage extends React.Component {
   }
 
   // showCalendar(){
-  //   if(this.state.datePicker){
+  //   if(this.state.calendar){
   //     this.setState({
-  //       datePicker: false,
+  //       calendar: false,
   //     })
   //   }
   //   else
   //   {
   //     this.setState({
-  //       datePicker: true,
+  //       calendar: true,
   //     })
   //   }
-  //   console.log(this.state);
+
+  //   // console.log('asdas')
+  //   // console.log(this.state.calendar)
   // }
 
-  showDateTimePicker = () => {
-    Keyboard.dismiss();
-    //this.setState({ datePicker: true });
-    console.log(this.state.date)
-    this.setState({
-      date: {
-        start: {
-          focus: true,
-          date: ''
-        },
-        end: {
-          focus: false,
-          date: ''
-        }
-      }
-    })
-    console.log('--------------')
-    console.log(this.state.date)
-  };
- 
-  hideDateTimePicker = () => {
-    //this.setState({ datePicker: false });
-    const state = this.state.date
-    this.setState({
-      date: {...state}
-    })
-    // this.setState({
-    //   date: {
-    //     start: {
-    //       focus: false,
-    //       date: this.state.date.start.date
-    //     },
-    //     end: {
-    //       focus: false,
-    //       date: ''
-    //     }
-    //   }
-    // })
-  };
- 
-  handleDatePicked = date => {
-    // console.log("A date has been picked: ", date);
-    console.log(date);
-    date = new Date(date)
-    const dateStart = date.toString()
-    console.log(dateStart)
-
-    const day = new Date(dateStart).getDate(); //Current Date
-    const month = (new Date(dateStart).getMonth() + 1) < 10 ? `0${(new Date(dateStart).getMonth() + 1)}` : new Date(dateStart).getMonth(); //Current Month
-    const year = new Date(dateStart).getFullYear(); //Current Year
-    const thisDate = `${day}/${month}/${year}`
-
-    //this.setState({ dateStart: thisDate })
-    const state = {...this.state.date}
-    state.start.date = thisDate
-    this.setState({
-      date: state
-    })
-    console.log('================')
-    console.log(this.state.date)
-    this.hideDateTimePicker();
-  };
 
   render() {
     return (
@@ -227,33 +158,14 @@ class newItemPage extends React.Component {
         </TextInput>
 
         <View>
-          {/* <Button title={'Дата'} onPress={this.showDateTimePicker}></Button> */}
-          <TextInput onFocus={this.showDateTimePicker}
-            style={styles.input}
-            placeholder={'Дата начала'}
-            placeholderTextColor = "#666666"
-            // value={this.state.dateStart}
-            value={this.state.date.start.date}
-          >
-
-          </TextInput>
+          {/* <Button onPress={() => this.props.navigation.navigate('MyCalendar')} title={'Выберите дату'}></Button> */}
+          {/* <Button onPress={() => this.showCalendar()} title={'Выберите дату'}></Button> */}
+          {/* <TextInput style={styles.input} placeholder={'Дата'}
+            placeholderTextColor = "#666666" onFocus={this.showCalendar}>
+          </TextInput> */}
 
           <View>
-            {/* {this.state.datePicker ?
-              <DateTimePicker 
-                isVisible={this.state.datePicker}
-                onConfirm={this.handleDatePicked}
-                onCancel={this.hideDateTimePicker}>
-              </DateTimePicker> : null
-            } */}
-            {this.state.date.start.focus ?
-              <DateTimePicker 
-                isVisible={this.state.date.start.focus}
-                onConfirm={this.handleDatePicked}
-                onCancel={this.hideDateTimePicker}>
-              </DateTimePicker> : null
-            }
-             
+            {/* {this.state.calendar ? <MyCalendar></MyCalendar> : null} */}
           </View>
         </View>
         
