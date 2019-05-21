@@ -3,6 +3,9 @@ import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView,
         TouchableOpacity, AsyncStorage, Button, Keyboard, Alert, ListView } from 'react-native';
 import App from '../App.js';
 import DateTimePicker from "react-native-modal-datetime-picker";
+// import {DatePicker} from 'native-base'
+// import MyDatePicker from '../components/datepicker/mydatepicker'
+//import Dpicker from '../components/datepicker/dpicker'
 
 class newItemPage extends React.Component {
   
@@ -69,10 +72,10 @@ class newItemPage extends React.Component {
   showData = async() => {
     let items = await AsyncStorage.getItem('newItem')
     let data = JSON.parse(items)
-    console.log('------------------------')
-    console.log(data)
-    //this.setSource(data, data, {loading: false});
-    // App.showData();
+    // console.log('------------------------')
+    // console.log(data)
+    console.log('=-=-=-=-=-=-=-=-=')
+    //console.log(Dpicker)
     
   }
 
@@ -120,67 +123,31 @@ class newItemPage extends React.Component {
     AsyncStorage.setItem('newItem', JSON.stringify(items));
   }
 
-  // showCalendar(){
-  //   if(this.state.datePicker){
-  //     this.setState({
-  //       datePicker: false,
-  //     })
-  //   }
-  //   else
-  //   {
-  //     this.setState({
-  //       datePicker: true,
-  //     })
-  //   }
-  //   console.log(this.state);
-  // }
-
+ 
   showDateTimePicker = () => {
     Keyboard.dismiss();
-    //this.setState({ datePicker: true });
-    console.log(this.state.date)
+    const state = {...this.state.date}
+    state.start.focus = true
     this.setState({
-      date: {
-        start: {
-          focus: true,
-          date: ''
-        },
-        end: {
-          focus: false,
-          date: ''
-        }
-      }
+      date: state
     })
-    console.log('--------------')
-    console.log(this.state.date)
+    // console.log('--------------')
+    // console.log(this.state.date)
   };
  
   hideDateTimePicker = () => {
-    //this.setState({ datePicker: false });
-    const state = this.state.date
+    const state = {...this.state.date}
+    state.start.focus = false
     this.setState({
-      date: {...state}
+      date: state
     })
-    // this.setState({
-    //   date: {
-    //     start: {
-    //       focus: false,
-    //       date: this.state.date.start.date
-    //     },
-    //     end: {
-    //       focus: false,
-    //       date: ''
-    //     }
-    //   }
-    // })
   };
  
   handleDatePicked = date => {
-    // console.log("A date has been picked: ", date);
-    console.log(date);
+    // console.log(date);
     date = new Date(date)
     const dateStart = date.toString()
-    console.log(dateStart)
+    // console.log(dateStart)
 
     const day = new Date(dateStart).getDate(); //Current Date
     const month = (new Date(dateStart).getMonth() + 1) < 10 ? `0${(new Date(dateStart).getMonth() + 1)}` : new Date(dateStart).getMonth(); //Current Month
@@ -193,8 +160,8 @@ class newItemPage extends React.Component {
     this.setState({
       date: state
     })
-    console.log('================')
-    console.log(this.state.date)
+    // console.log('================')
+    // console.log(this.state.date)
     this.hideDateTimePicker();
   };
 
@@ -234,26 +201,16 @@ class newItemPage extends React.Component {
             placeholderTextColor = "#666666"
             // value={this.state.dateStart}
             value={this.state.date.start.date}
-          >
-
-          </TextInput>
-
+          />
           <View>
-            {/* {this.state.datePicker ?
-              <DateTimePicker 
-                isVisible={this.state.datePicker}
-                onConfirm={this.handleDatePicked}
-                onCancel={this.hideDateTimePicker}>
-              </DateTimePicker> : null
-            } */}
             {this.state.date.start.focus ?
-              <DateTimePicker 
+              <DateTimePicker
                 isVisible={this.state.date.start.focus}
                 onConfirm={this.handleDatePicked}
                 onCancel={this.hideDateTimePicker}>
               </DateTimePicker> : null
             }
-             
+
           </View>
         </View>
         
