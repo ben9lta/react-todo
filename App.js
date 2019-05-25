@@ -21,6 +21,26 @@ class App extends React.Component {
       id: 1,
       items:[],
       dataSource: ds.cloneWithRows(['row 1', 'row 2']),
+
+      date: {
+        start: {
+          focus: false,
+          date: '',
+        },
+        end: {
+          focus: false,
+          date: '',
+        },
+      },
+
+      switch: {
+        notification: false,
+        done: false,
+      },
+
+      slider: {
+        weight: 0,
+      },
     }
     this.setSource = this.setSource.bind(this);
     this.showData = this.showData.bind(this);
@@ -37,7 +57,11 @@ class App extends React.Component {
         key: Date.now(),
         title: this.state.title,
         text: this.state.text,
-        complete: false
+        complete: this.state.switch.done,
+        weight: this.state.slider.weight,
+        notification: this.state.switch.notification,
+        dateStart: this.state.date.start.date,
+        dateEnd: this.state.date.end.date,
       }
     ]
     AsyncStorage.setItem('newItem', JSON.stringify(newItems));
