@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView, TouchableOpacity, TouchableElement, AsyncStorage, Button, Keyboard, Alert, ListView, Row } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TouchableElement, AsyncStorage, Button, ListView, Platform } from 'react-native';
+import {Permissions, Notifications} from 'expo';
 
 class Home extends React.Component {
   constructor(props){
@@ -11,42 +12,39 @@ class Home extends React.Component {
       text:'',
       id: 1,
       items:[],
+      notifications: {},
       dataSource: ds.cloneWithRows(['row 1', 'row 2']),
     }
     this.setSource = this.setSource.bind(this);
     this.showData = this.showData.bind(this);
     this.renderData = this.renderData.bind(this);
+    // this.setNotif = this.setNotif.bind(this);
+    // this.sendNotificationImmediately = this.sendNotificationImmediately.bind(this)
+    this.scheduleNotification = this.scheduleNotification.bind(this)
     // this.saveData = this.saveData.bind(this);
-  }
-  saveData = () => {
-    Alert.alert('Данные добавлены');
-    //AsyncStorage.setItem('newItem', JSON.stringify(newItem));
-
-    if(!this.state.title || !this.state.text) return;
-    const newItems = [
-      ...this.state.items,
-      {
-        key: Date.now(),
-        title: this.state.title,
-        text: this.state.text,
-        complete: false
-      }
-    ]
-    AsyncStorage.setItem('newItem', JSON.stringify(newItems));
-    //AsyncStorage.setItem('newId', this.state.id);
-    this.setSource(newItems, newItems, { title: '', text: '',})
-    this.showData();
-
-    Keyboard.dismiss();
   }
 
   componentDidMount(){
     
     this.asyncData()
+    // this.sendNotificationImmediately()
+    //console.log(this.state.items)
     //AsyncStorage.clear();
-  }
 
-  
+    // AsyncStorage.getItem('notification').then((json)=>{
+    //   if(json === null) return;
+    //   try {
+    //     const items = JSON.parse(json);
+    //     // this.setNotif(items)
+    //     //console.log(json);
+    //     console.log(items)
+    //     console.log('Загружено notification')
+        
+    //   } catch(e) {
+    //     console.log(e + '-> error')
+    //   }
+    // })
+  }
 
   asyncData(){
     AsyncStorage.getItem('newItem').then((json)=>{
@@ -68,24 +66,79 @@ class Home extends React.Component {
     })
   }
 
-  clickOnItem = async(item) => {
-    try {
-      await AsyncStorage.removeItem(item);
-      return true;
+  askPermissions = async () => {
+    const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+    let finalStatus = existingStatus;
+    if (existingStatus !== granted) {
+      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+      finalStatus = status;
     }
-    catch(exception) {
+    if (finalStatus !== granted) {
       return false;
     }
-  }
+    return true;
+  };
+
+  scheduleNotification = async (item) => {
+    if (item.notification) {
+      const id = item.key
+      console.log(id)
+      if (Platform.OS === 'android') {
+        Expo.Notifications.createChannelAndroidAsync(id.toString(), {
+          name: id.toString(),
+          sound: true,
+          vibrate: [0, 250, 250, 250],
+        });
+      }
   
-  showData = async() => {
+      Expo.Notifications.presentLocalNotificationAsync({
+        // title: 'New Message',
+        title: 'Важное дело',
+        body: item.title,
+        android: {
+          channelId: id.toString(),
+        },
+      });
+    } else {
+      console.log('BAN')
+    }
+
+    let currentDate = Date.now();
+    currentDate = new Date(currentDate);
+
+    let year = currentDate.getFullYear();
+    let month = currentDate.getMonth();
+    let date = currentDate.getDate();
+
+    let not0 = new Date(year, month, date, 13,48, 30);
+        not0 = Date.parse(not0);
+  };
+
+  showData = async(item) => {
     let items = await AsyncStorage.getItem('newItem')
     let data = JSON.parse(items)
-    console.log('------------------------')
-    console.log(data)
+    // console.log('------------------------')
+    // console.log(data)
     this.setSource(data, data, {loading: false});
-    //console.log(this.state.id)
+    console.log('***************')
+    console.log(item)
+    console.log('****************')
+    item ? this.scheduleNotification(item) : null
+
+    // this.setNotif(items)
+    // AsyncStorage.setItem('notification', JSON.stringify(items));
+    // let notif = await AsyncStorage.getItem('notification')
+    // let notifData = JSON.parse(notif)
+
+    // console.log('===============NOTIFICATION================')
+    // console.log(this.state.notifications)
+    // console.log('===========================================')
   }
+
+  // setNotif(items){
+  //   this.setState({notifications: items})
+  //   // AsyncStorage.setItem('notification', JSON.stringify(items));
+  // }
 
   setSource(items,itemsDatasource, otherState = {}) {
 
@@ -114,27 +167,37 @@ class Home extends React.Component {
   render() {
     return (
       <View style={styles.container}>
+        {this.state.items.length > 0 ? 
         <ListView 
             style={styles.list}
             dataSource={this.state.dataSource}
             renderRow={(data) =>
-            <View style={styles.dataView} >
-              {/* <Text style={styles.dataViewTitle} onPress={this.OpenSelectedItem.bind(this, data)}>{data.title}</Text> */}
-              <Text style={styles.dataViewTitle} onPress={() => {
-                this.props.navigation.navigate('selectedItemPage', { 
-                  dataItem: data, 
-                  allData: this.state.items, 
-                  showData: this.showData,
-                  renderData: this.renderData
-                })
-              }}>
-                {data.title}
-              </Text>
-            </View>}
+            <TouchableOpacity onPress={() => {
+              this.props.navigation.navigate('selectedItemPage', {
+                dataItem: data,
+                allData: this.state.items,
+                showData: this.showData,
+                renderData: this.renderData
+              })
+            }}>
+                <View style={styles.dataView} >
+                  <Text style={styles.dataViewTitle} >
+                    {data.title}
+                  </Text>
+                  <Text>{data.dateStart}</Text>
+                </View>
+            </TouchableOpacity>
+            }
           renderSeparator={(sectionId, rowId) => <View key={rowId} style={styles.separator} />}
                 
         >
         </ListView>
+        : <Text style={{
+          paddingLeft: 10, paddingTop: 10, height: 60, 
+          justifyContent: 'center', alignContent: 'center', 
+          color: '#F30000',
+          fontSize: 26, width: '100%',}}>Записей нет</Text>
+        }
         <Button title="Показать данные" onPress={() => {this.showData()}}></Button>
 
         <TouchableOpacity style={styles.bottomButton} onPress={() => this.props.navigation.navigate('newItemPage', { showData: this.showData })}>

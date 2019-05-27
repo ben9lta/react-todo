@@ -11,11 +11,14 @@ class SelectedItemPage extends React.Component {
     componentDidMount(){
         //console.log(this.props.navigation.state.params.dataItem)
         const dataItem = this.props.navigation.state.params.dataItem
+        this.setState({
+            item: dataItem
+        })
         // const allData = this.props.navigation.state.params.allData
         // console.log(this.props.navigation.state.params.allData)
-        console.log('=======================================')
-        console.log(dataItem)
-        console.log('///////')
+        console.log('=================STATE==================')
+        console.log(this.state)
+        console.log('========================================')
     } 
 
     constructor(props){
@@ -40,8 +43,8 @@ class SelectedItemPage extends React.Component {
                 complete: dataItem.complete,
                 weight: dataItem.weight,
                 notification: dataItem.notification,
-                dateStart: dataItem.date,
-                dateEnd: dataItem.date,
+                dateStart: dataItem.dateStart,
+                dateEnd: dataItem.dateEnd,
             },
             allItems: allData,
 
@@ -62,7 +65,7 @@ class SelectedItemPage extends React.Component {
             },
 
             slider: {
-                weight: 0,
+                weight: 1,
             }
 
             
@@ -137,7 +140,19 @@ class SelectedItemPage extends React.Component {
         //  console.log('=-****************************-=')
         //  console.log(newItems)
         //  console.log('=============================')
+        const stateItem = {...this.state.item}
+        // stateItem.key = key
+        // stateItem.title = this.state.title
+        // stateItem.text = this.state.text
+        // stateItem.complete = this.state.switch.done
+        // stateItem.weight = this.state.slider.weight
+        // stateItem.notification = this.state.switch.notification
+        // stateItem.dateStart = this.state.date.start.date
+        // stateItem.dateEnd = this.state.date.end.date
+        let notifItem = stateItem
+        notifItem.time = new Date().getTime() + 5000
 
+        // AsyncStorage.setItem('notification', JSON.stringify(notifItem));
         AsyncStorage.setItem('newItem', JSON.stringify(newItems));
 
         this.props.navigation.state.params.showData()
@@ -165,8 +180,10 @@ class SelectedItemPage extends React.Component {
             }
         })
 
+        // AsyncStorage.setItem('notification', JSON.stringify(array));
         AsyncStorage.setItem('newItem', JSON.stringify(array));
-        this.props.navigation.state.params.showData()
+        console.log(this.state)
+        this.props.navigation.state.params.showData(this.state.item)
         this.props.navigation.navigate('Home', console.log(this.state.allItems), {
             items: array,
         });
@@ -196,12 +213,15 @@ class SelectedItemPage extends React.Component {
         const month = (new Date(newDate).getMonth() + 1) < 10 ? `0${(new Date(newDate).getMonth() + 1)}` : new Date(newDate).getMonth() + 1;
         const year = new Date(newDate).getFullYear(); //Current Year
         const thisDate = `${day}/${month}/${year}`
-        const state = { ...this.state.date }
+        const state = {...this.state.item}
+        state.dateStart = thisDate
+        this.setState({item: state})
+        // const state = { ...this.state.date }
 
-        state.start.date = thisDate
-        this.setState({
-            date: state
-        })
+        // state.start.date = thisDate
+        // this.setState({
+        //     date: state
+        // })
 
         this.hideDateTimeStartPicker();
     };
@@ -236,12 +256,14 @@ class SelectedItemPage extends React.Component {
         const month = (new Date(newDate).getMonth() + 1) < 10 ? `0${(new Date(newDate).getMonth() + 1)}` : new Date(newDate).getMonth() + 1; //Current Month
         const year = new Date(newDate).getFullYear(); //Current Year
         const thisDate = `${day}/${month}/${year}`
-        const state = { ...this.state.date }
-
-        state.end.date = thisDate
-        this.setState({
-            date: state
-        })
+        const state = {...this.state.item}
+        state.dateEnd = thisDate
+        this.setState({item: state})
+        //const state = { ...this.state.date }
+        // state.end.date = thisDate
+        // this.setState({
+        //     date: state
+        // })
 
         this.hideDateTimeEndPicker();
     };
@@ -268,15 +290,23 @@ class SelectedItemPage extends React.Component {
     //=================================================================
 
     toggleNotif = async () => {
-        const state = { ...this.state.switch }
-        if(this.state.switch.notification){
+        const state = {...this.state.item}
+        if(this.state.item.notification){
             state.notification = false
-            this.setState({switch: state})
+            this.setState({item: state})
         } else {
             state.notification = true
-            this.setState({switch: state})
+            this.setState({item: state})
         }
-//        console.log(this.state.switch)
+        // const state = { ...this.state.switch }
+        // if(this.state.switch.notification){
+        //     state.notification = false
+        //     this.setState({switch: state})
+        // } else {
+        //     state.notification = true
+        //     this.setState({switch: state})
+        // }
+        console.log(this.state.item)
     }
 
     //=================================================================
@@ -284,15 +314,23 @@ class SelectedItemPage extends React.Component {
     //=================================================================
 
     toggleDone = async () => {
-        const state = { ...this.state.switch }
-        if(this.state.switch.done){
-            state.done = false
-            this.setState({switch: state})
+        const state = {...this.state.item}
+        if(this.state.item.complete){
+            state.complete = false
+            this.setState({item: state})
         } else {
-            state.done = true
-            this.setState({switch: state})
+            state.complete = true
+            this.setState({item: state})
         }
-        console.log(this.state.switch.done)
+        //const state = { ...this.state.switch }
+        // if(this.state.switch.done){
+        //     state.done = false
+        //     this.setState({switch: state})
+        // } else {
+        //     state.done = true
+        //     this.setState({switch: state})
+        // }
+        // console.log(this.state.item)
     }
 
     
@@ -301,7 +339,11 @@ class SelectedItemPage extends React.Component {
     //=================================================================
 
     sliderWeight = async(value) => {
-        this.setState({slider: {weight: value}})
+        const state = {...this.state.item}
+        state.weight = value;
+        this.setState({
+            item: state,
+        })
 
     }
 
@@ -335,24 +377,26 @@ class SelectedItemPage extends React.Component {
                 </View>
                 <View>
                     <View style={{...styles.switch_notif, backgroundColor: this.state.textInput.backgroundColor}}>
-                        <Text style={{ width: '50%' }}>Уведомления: {this.state.switch.notification ? ' Включены' : ' Выключены'}</Text>
-                        <Switch value={this.state.switch.notification} disabled={!this.state.isEditable}
+                        <Text style={{ width: '50%' }}>Уведомления: {this.state.item.notification ? ' Включены' : ' Выключены'}</Text>
+                        <Switch value={this.state.item.notification} disabled={!this.state.isEditable}
                             onValueChange={() => { this.toggleNotif() }} style={{ width: '50%', alignItems: 'flex-end', flexDirection: 'row', position: 'relative' }}
                         />
                     </View>
                     <View style={{...styles.switch_done, backgroundColor: this.state.textInput.backgroundColor}}>
-                        <Text style={{ width: '50%' }}>Выполнено: {this.state.switch.done ? ' Да' : ' Нет'}</Text>
-                        <Switch value={this.state.switch.done} disabled={!this.state.isEditable}
+                        <Text style={{ width: '50%' }}>Выполнено: {this.state.item.complete ? ' Да' : ' Нет'}</Text>
+                        <Switch 
+                            // value={this.state.switch.done} 
+                            value={this.state.item.complete}
+                            disabled={!this.state.isEditable}
                             onValueChange={() => { this.toggleDone() }} style={{ width: '50%', alignItems: 'flex-end', flexDirection: 'row', position: 'relative' }}
                         />
                     </View>
                     <View style={{...styles.switch_done, backgroundColor: this.state.textInput.backgroundColor}}>
-                        <Text style={{ width: '50%' }}>Важность: {this.state.slider.weight + 1}</Text>
-                        {/* <Switch value={this.state.switch.notification} disabled={!this.state.isEditable}
-                            onValueChange={() => { this.toggleNotif() }} style={{ width: '50%', alignItems: 'flex-end', flexDirection: 'row', position: 'relative' }}
-                        /> */}
-                        <Slider minimumValue={0} maximumValue={4} onValueChange={(value) => this.sliderWeight(value)}
-                            value={this.state.slider.weight} style={{width: '50%'}} step={1}></Slider>
+                        <Text style={{ width: '50%' }}>Важность: {this.state.item.weight}</Text>
+                        {/* {this.state.slider.weight} */}
+                        <Slider minimumValue={1} maximumValue={5} onValueChange={(value) => this.sliderWeight(value)}
+                            value={this.state.item.weight} style={{width: '50%'}} step={1} 
+                            disabled={!this.state.isEditable}></Slider>
                     </View>
 
                     <TextInput placeholder='Заголовок'
@@ -377,14 +421,16 @@ class SelectedItemPage extends React.Component {
                         style={{...styles.input, ...styles.col2_items, backgroundColor: this.state.textInput.backgroundColor,}}
                         placeholder={'Дата начала'}
                         placeholderTextColor="#666666"
-                        value={this.state.date.start.date}
+                        //value={this.state.date.start.date}
+                        value={this.state.item.dateStart}
                         editable={this.state.isEditable}
                         />
                         <TextInput onFocus={this.showDateTimeEndPicker}
                         style={{...styles.input, ...styles.col2_items, backgroundColor: this.state.textInput.backgroundColor,}}
                         placeholder={'Дата окончания'}
                         placeholderTextColor="#666666"
-                        value={this.state.date.end.date}
+                        //value={this.state.date.end.date}
+                        value={this.state.item.dateEnd}
                         editable={this.state.isEditable}
                         />
                     </View>
@@ -412,6 +458,8 @@ class SelectedItemPage extends React.Component {
 
                     <View style={{marginLeft: '3%'}}>       
                         <TextInput 
+                            value={this.state.text}
+                            // value={this.state.item.text}
                             style={{ height: 150,  width: '97%', borderColor: 'black', borderWidth: 1, 
                                 borderRadius: 10, textAlignVertical: 'top',
                                 padding: 10,

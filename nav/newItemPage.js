@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
-import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView, Switch, Slider,
+import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView, Switch, Slider, KeyboardAvoidingView,
         TouchableOpacity, AsyncStorage, Button, Keyboard, Alert, ListView } from 'react-native';
 import App from '../App.js';
 import DateTimePicker from "react-native-modal-datetime-picker";
-import { Label } from 'native-base';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+
+// import { Label } from 'native-base';
 // import {Textarea} from 'native-base'
 
 // import {DatePicker} from 'native-base'
@@ -19,6 +21,16 @@ class newItemPage extends React.Component {
       title:'',
       text:'',
       items:[],
+      item: {
+        title: '',
+        text: '',
+        key: '',
+        complete: '',
+        weight: '',
+        notification: '',
+        dateStart: '',
+        dateEnd: '',
+      },
       showData: null,
       dataSource: ds.cloneWithRows(['row 1', 'row 2']),
 
@@ -41,23 +53,63 @@ class newItemPage extends React.Component {
       },
 
       slider: {
-        weight: 0,
-      }
+        weight: 1,
+      },
+
+      style: false,
+      keyboardShow: false,
+      marginTop: 0,
+      // notifications: {
+
+      // },
 
     }
     this.setSource = this.setSource.bind(this);
     this.showData = this.showData.bind(this);
     this.saveData = this.saveData.bind(this);
+    this._keyboardDidShow = this._keyboardDidShow.bind(this)
+    this._keyboardDidHide = this._keyboardDidHide.bind(this)
     //this.showCalendar = this.showCalendar.bind(this);
   }
 
   componentDidMount(){
     if(!this.state.loading) return
-    this.asyncData();
-    console.log(this.props.navigation.state.params)
-    
+    this.asyncData();   
+
+    // const item = this.state.item
+    // item.time = new Date().getTime() + 5000
+    // this.setState({
+    //   notifications: item
+    // })
+
+    this.keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      this._keyboardDidShow,
+    );
+    this.keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      this._keyboardDidHide,
+    );
     
   }
+
+  componentWillUnmount() {
+    this.keyboardDidShowListener.remove();
+    this.keyboardDidHideListener.remove();
+  }
+
+  _keyboardDidShow() {
+    this.setState({
+      keyboardShow: true
+    });
+  }
+
+  _keyboardDidHide() {
+    this.setState({
+      keyboardShow: false
+    });
+  }
+
 
   asyncData(){
     AsyncStorage.getItem('newItem').then((json)=>{
@@ -85,7 +137,9 @@ class newItemPage extends React.Component {
     let data = JSON.parse(items)
     // console.log('------------------------')
     // console.log(data)
-    console.log('=-=-=-=-=-=-=-=-=')
+    // console.log('=-=-=-=-=-=-=-=-=')
+    // console.log(this.state.notifications)
+    // console.log('-=-=-=-=-=-=-=-=-')
     //console.log(Dpicker)
     
   }
@@ -95,25 +149,43 @@ class newItemPage extends React.Component {
     //AsyncStorage.setItem('newItem', JSON.stringify(newItem));
 
     if(!this.state.title || !this.state.text) return;
-    //if(this.state.date.start.date)
+
+    const key = Date.now()
+
+    const stateItem = {...this.state.item}
+    stateItem.key = key
+    stateItem.title = this.state.title
+    stateItem.text = this.state.text
+    stateItem.complete = this.state.switch.done
+    stateItem.weight = this.state.slider.weight
+    stateItem.notification = this.state.switch.notification
+    stateItem.dateStart = this.state.date.start.date
+    stateItem.dateEnd = this.state.date.end.date
+
+    this.setState({
+      item: stateItem,
+    })
+
     const newItems = [
       ...this.state.items,
       {
-        key: Date.now(),
-        title: this.state.title,
-        text: this.state.text,
-        complete: this.state.switch.done,
-        weight: this.state.slider.weight,
-        notification: this.state.switch.notification,
-        dateStart: this.state.date.start.date,
-        dateEnd: this.state.date.end.date,
+        // key: key,
+        // title: this.state.title,
+        // text: this.state.text,
+        // complete: this.state.switch.done,
+        // weight: this.state.slider.weight,
+        // notification: this.state.switch.notification,
+        // dateStart: this.state.date.start.date,
+        // dateEnd: this.state.date.end.date,
+        ...stateItem
         
       }
     ]
     AsyncStorage.setItem('newItem', JSON.stringify(newItems));
+    // AsyncStorage.setItem('notification', JSON.stringify(notifItem));
     this.setSource(newItems, newItems, { title: '', text: '',})
 
-    this.props.navigation.state.params.showData()
+    this.props.navigation.state.params.showData(stateItem)
     
     
     this.props.navigation.navigate('Home', console.log(newItems), {
@@ -162,10 +234,12 @@ class newItemPage extends React.Component {
     const year = new Date(newDate).getFullYear(); //Current Year
     const thisDate = `${day}/${month}/${year}`
     const state = {...this.state.date}
-
+    const stateItem = {...this.state.item}
+    stateItem.dateStart = thisDate
     state.start.date = thisDate
     this.setState({
-      date: state
+      date: state,
+      item: stateItem,
     })
 
     this.hideDateTimeStartPicker();
@@ -177,8 +251,8 @@ class newItemPage extends React.Component {
     this.setState({
       date: state
     })
-    console.log('================')
-    console.log(this.state.date)
+    // console.log('================')
+    // console.log(this.state.date)
   };
 
   //=================================================================
@@ -203,10 +277,12 @@ class newItemPage extends React.Component {
     const year = new Date(newDate).getFullYear(); //Current Year
     const thisDate = `${day}/${month}/${year}`
     const state = {...this.state.date}
-
+    const stateItem = {...this.state.item}
+    stateItem.dateEnd = thisDate
     state.end.date = thisDate
     this.setState({
-      date: state
+      date: state,
+      item: stateItem,
     })
 
     this.hideDateTimeEndPicker();
@@ -218,8 +294,8 @@ class newItemPage extends React.Component {
     this.setState({
       date: state
     })
-    console.log('================')
-    console.log(this.state.date)
+    // console.log('================')
+    // console.log(this.state.date)
   };
 
  //=================================================================
@@ -236,18 +312,27 @@ class newItemPage extends React.Component {
  //=================================================================
 
   toggleNotif = async() => {
-    this.state.switch.notification ? this.setState({
-      switch: {
-        notification: false,
-        done: false,
-      }
-    }) : this.setState({
-      switch: {
-        notification: true,
-        done: false,
-      }
-    })
-    console.log(this.state.switch.notification)
+    const stateItem = {...this.state.item}
+    if(this.state.switch.notification){
+      stateItem.notification = false 
+      this.setState({
+        switch: {
+          notification: false,
+          done: false,
+        },
+        item: stateItem
+      })
+    } else {
+      stateItem.notification = true
+      this.setState({
+        switch: {
+          notification: true,
+          done: false,
+        },
+        item: stateItem
+      })
+    }
+    // console.log(this.state.switch.notification)
   }
 
   //=================================================================
@@ -255,10 +340,32 @@ class newItemPage extends React.Component {
   //=================================================================
 
   sliderWeight = async (value) => {
-    this.setState({ slider: { weight: value } })
-
+    const stateItem = {...this.state.item}
+    stateItem.weight = value
+    this.setState({ slider: { weight: value }, item: stateItem })
+    console.log(this.state.item)
   }
 
+  //=================================================================
+  //------------------------- Notification ------------------------//
+  //=================================================================
+  scheduleNotification = async () => {
+    //this.state.items
+    if (Platform.OS === 'android') {
+      Expo.Notifications.createChannelAndroidAsync('1', {
+        name: '1',
+        sound: true,
+        vibrate: [0, 250, 250, 250],
+      });
+    }
+    Expo.Notifications.presentLocalNotificationAsync({
+      title: 'New Message',
+      body: 'Message!!!!',
+      android: {
+        channelId: '1',
+      },
+    });
+  };
   //=================================================================
   //=================================================================
 
@@ -290,7 +397,12 @@ class newItemPage extends React.Component {
           </View>
         </View>
 
-        <View>
+        <ScrollView>
+        <View 
+          
+          { ...this.state.style && this.state.keyboardShow ? style={marginTop: this.state.marginTop} : style={marginTop: 0}}
+          
+        >
           <View style={styles.switch_text}>
             <Text style={{width: '50%'}}>Уведомления: {this.state.switch.notification ? ' Включены' : ' Выключены'}</Text>
             <Switch value={this.state.switch.notification} enabled
@@ -299,13 +411,24 @@ class newItemPage extends React.Component {
           </View>
           
           <View style={{ ...styles.switch_done }}>
-            <Text style={{ width: '50%' }}>Важность: {this.state.slider.weight + 1}</Text>
-            <Slider minimumValue={0} maximumValue={4} onValueChange={(value) => this.sliderWeight(value)}
+            <Text style={{ width: '50%' }}>Важность: {this.state.slider.weight}</Text>
+            <Slider minimumValue={1} maximumValue={5} onValueChange={(value) => this.sliderWeight(value)}
               value={this.state.slider.weight} style={{ width: '50%' }} step={1}></Slider>
           </View>
 
           <TextInput placeholder='Заголовок' onChangeText={title => this.setState({ title })} style={styles.input}
-            placeholderTextColor="#666666">
+            placeholderTextColor="#666666"
+            onFocus={() => this.setState({
+              style: true,
+              keyboardShow: true,
+              marginTop: -150,
+            })}
+            onBlur={() => this.setState({
+              style: false,
+              keyboardShow: false,
+              marginTop: 0,
+            })}
+          >
 
           </TextInput>
           {/* <TextInput placeholder='Текст' onChangeText={text => this.setState({ text })} style={styles.input}
@@ -350,8 +473,8 @@ class newItemPage extends React.Component {
             }
           </View>
           
-          <View style={{marginLeft: '3%'}}>
-
+          <View style={{marginLeft: '3%', marginTop: '-10%'}}>
+            
             <TextInput 
               style={{ height: 150, width: '97%', borderColor: 'black', borderWidth: 1, 
                 borderRadius: 10, backgroundColor: '#fff', textAlignVertical: 'top',
@@ -364,13 +487,25 @@ class newItemPage extends React.Component {
               placeholderTextColor="#666666"
               editable={true}
               multiline={true}
+              onFocus={() => this.setState({
+                style: true,
+                keyboardShow: true,
+                marginTop: -300,
+              })}
+              onBlur={() => this.setState({
+                style: false,
+                keyboardShow: false,
+                marginTop: 0,
+              })}
+              
             />
-
+            
           </View>
-
-        </View>
-        
+         
+        </View> 
+        </ScrollView>
       </View>
+      
     )
   }
 }
