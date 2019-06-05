@@ -8,6 +8,12 @@
       "ios",
       "android"
     ],
+    "android": {
+      "package": "com.ben9lta.todolist"
+    },
+    "ios": {
+      
+    },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,7 +29,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ben9lta.todolist"
     }
   }
 }

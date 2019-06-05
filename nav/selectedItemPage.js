@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView, Switch, Slider,
-            TouchableOpacity, AsyncStorage, Button, Keyboard, Alert, ListView } from 'react-native';
+import { StyleSheet, ScrollView, Text, View, TextInput, Switch, Slider,
+            TouchableOpacity, AsyncStorage, Keyboard } from 'react-native';
 //import { StackNavigator } from "react-navigation";
 import DateTimePicker from "react-native-modal-datetime-picker";
 //import { Row } from 'native-base';
@@ -9,17 +9,40 @@ import DateTimePicker from "react-native-modal-datetime-picker";
 class SelectedItemPage extends React.Component {
 
     componentDidMount(){
-        //console.log(this.props.navigation.state.params.dataItem)
         const dataItem = this.props.navigation.state.params.dataItem
         this.setState({
             item: dataItem
         })
-        // const allData = this.props.navigation.state.params.allData
-        // console.log(this.props.navigation.state.params.allData)
-        console.log('=================STATE==================')
-        console.log(this.state)
-        console.log('========================================')
+        
+        this.keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            this._keyboardDidShow,
+        );
+        this.keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            this._keyboardDidHide,
+        );
+        // console.log('=================STATE==================')
+        // console.log(this.state)
+        // console.log('========================================')
     } 
+
+    componentWillUnmount() {
+        this.keyboardDidShowListener.remove();
+        this.keyboardDidHideListener.remove();
+    }
+
+    _keyboardDidShow() {
+        this.setState({
+            keyboardShow: true
+        });
+    }
+
+    _keyboardDidHide() {
+        this.setState({
+            keyboardShow: false
+        });
+    }
 
     constructor(props){
         super(props)
@@ -66,29 +89,27 @@ class SelectedItemPage extends React.Component {
 
             slider: {
                 weight: 1,
-            }
+            },
+
+            style: false,
+            keyboardShow: false,
+            marginTop: 0,
 
             
         }
+        this._keyboardDidShow = this._keyboardDidShow.bind(this)
+        this._keyboardDidHide = this._keyboardDidHide.bind(this)
 
     }
     
 
     static navigationOptions = ({navigation, }) => (console.log(navigation),{
         title: 'Запись "'+navigation.state.params.dataItem.title+'"',
-        // headerRight: (
-            // <Button
-            //   onPress={() => alert('This is a button!')}
-            //   title="Info"
-            //   color="#fff"
-            // />
-        // ),
     });
 
     handleEdit = () => {
         const isEditable = this.state.isEditable;
         this.setState({ isEditable: !isEditable });
-        // console.log(isEditable)
         const textInput = {...this.state.textInput}
         const changeButton = {...this.state.changeButton}
 
@@ -103,8 +124,6 @@ class SelectedItemPage extends React.Component {
             this.setState({textInput})
 
             this.saveItem(this.state.item.key)
-            // console.log('=======');
-            //console.log(this.state.item)
 
         } else {
             changeButton.text = 'Сохранить'
@@ -115,10 +134,6 @@ class SelectedItemPage extends React.Component {
             textInput.backgroundColor = "#fff"
             this.setState({textInput})
         }
-
-        // console.log(this.state.textInput.backgroundColor)
-        // console.log(this.state.changeButton)
-        // console.log(this.state)
         
     };
 
@@ -131,28 +146,13 @@ class SelectedItemPage extends React.Component {
                 if(index !== -1) {
                     newItems.splice(index, 1)
                     newItems.push(newItem);
-                    // this.setState({
-                    //     allItems: newItems
-                    // })
                 }
             }
         });
-        //  console.log('=-****************************-=')
-        //  console.log(newItems)
-        //  console.log('=============================')
         const stateItem = {...this.state.item}
-        // stateItem.key = key
-        // stateItem.title = this.state.title
-        // stateItem.text = this.state.text
-        // stateItem.complete = this.state.switch.done
-        // stateItem.weight = this.state.slider.weight
-        // stateItem.notification = this.state.switch.notification
-        // stateItem.dateStart = this.state.date.start.date
-        // stateItem.dateEnd = this.state.date.end.date
         let notifItem = stateItem
         notifItem.time = new Date().getTime() + 5000
 
-        // AsyncStorage.setItem('notification', JSON.stringify(notifItem));
         AsyncStorage.setItem('newItem', JSON.stringify(newItems));
 
         this.props.navigation.state.params.showData()
@@ -174,23 +174,14 @@ class SelectedItemPage extends React.Component {
                 this.setState({
                     allItems: array
                 })
-                // return {
-                //     ...newItem
-                // }
             }
         })
-
-        // AsyncStorage.setItem('notification', JSON.stringify(array));
         AsyncStorage.setItem('newItem', JSON.stringify(array));
-        console.log(this.state)
+        // console.log(this.state)
         this.props.navigation.state.params.showData(this.state.item)
         this.props.navigation.navigate('Home', console.log(this.state.allItems), {
             items: array,
         });
-        // this.props.navigation.state.params.renderData(array);
-        // this.props.navigation.navigate('Home' ,{
-        //     items: array,
-        // });
     }
 
     //=================================================================
@@ -216,12 +207,6 @@ class SelectedItemPage extends React.Component {
         const state = {...this.state.item}
         state.dateStart = thisDate
         this.setState({item: state})
-        // const state = { ...this.state.date }
-
-        // state.start.date = thisDate
-        // this.setState({
-        //     date: state
-        // })
 
         this.hideDateTimeStartPicker();
     };
@@ -232,8 +217,6 @@ class SelectedItemPage extends React.Component {
         this.setState({
             date: state
         })
-        // console.log('================')
-        // console.log(this.state.date)
     };
 
     //=================================================================
@@ -259,12 +242,6 @@ class SelectedItemPage extends React.Component {
         const state = {...this.state.item}
         state.dateEnd = thisDate
         this.setState({item: state})
-        //const state = { ...this.state.date }
-        // state.end.date = thisDate
-        // this.setState({
-        //     date: state
-        // })
-
         this.hideDateTimeEndPicker();
     };
 
@@ -274,17 +251,7 @@ class SelectedItemPage extends React.Component {
         this.setState({
             date: state
         })
-        // console.log('================')
-        // console.log(this.state.date)
     };
-
-    //=================================================================
-    //------------------------- Scroll Down -------------------------//
-    //=================================================================
-    scrollDown() {
-        console.log(this.refs)
-        //this.refs.scrollView.scrollTo(width*2/3);
-    }
     //=================================================================
     //--------------------- Switch Notification ---------------------//
     //=================================================================
@@ -298,15 +265,7 @@ class SelectedItemPage extends React.Component {
             state.notification = true
             this.setState({item: state})
         }
-        // const state = { ...this.state.switch }
-        // if(this.state.switch.notification){
-        //     state.notification = false
-        //     this.setState({switch: state})
-        // } else {
-        //     state.notification = true
-        //     this.setState({switch: state})
-        // }
-        console.log(this.state.item)
+
     }
 
     //=================================================================
@@ -322,15 +281,6 @@ class SelectedItemPage extends React.Component {
             state.complete = true
             this.setState({item: state})
         }
-        //const state = { ...this.state.switch }
-        // if(this.state.switch.done){
-        //     state.done = false
-        //     this.setState({switch: state})
-        // } else {
-        //     state.done = true
-        //     this.setState({switch: state})
-        // }
-        // console.log(this.state.item)
     }
 
     
@@ -344,7 +294,6 @@ class SelectedItemPage extends React.Component {
         this.setState({
             item: state,
         })
-
     }
 
     //=================================================================
@@ -375,7 +324,11 @@ class SelectedItemPage extends React.Component {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <View>
+
+                <ScrollView>
+                <View 
+                    { ...this.state.style && this.state.keyboardShow ? style={marginTop: this.state.marginTop} : style={marginTop: 0}}
+                >
                     <View style={{...styles.switch_notif, backgroundColor: this.state.textInput.backgroundColor}}>
                         <Text style={{ width: '50%' }}>Уведомления: {this.state.item.notification ? ' Включены' : ' Выключены'}</Text>
                         <Switch value={this.state.item.notification} disabled={!this.state.isEditable}
@@ -401,11 +354,18 @@ class SelectedItemPage extends React.Component {
 
                     <TextInput placeholder='Заголовок'
                         editable={this.state.isEditable}
+                        onFocus={() => this.setState({
+                            style: true,
+                            keyboardShow: true,
+                            marginTop: -150,
+                        })}
+                        onBlur={() => this.setState({
+                            style: false,
+                            keyboardShow: false,
+                            marginTop: 0,
+                        })}
                         onChangeText={title => this.setState({
                             item: {
-                                // title: title,
-                                // text: this.state.item.text,
-                                // key: this.state.item.key
                                 ...this.state.item,
                                 title: title,
 
@@ -464,29 +424,37 @@ class SelectedItemPage extends React.Component {
                                 borderRadius: 10, textAlignVertical: 'top',
                                 padding: 10,
                                 marginTop: 10,
-                                //marginLeft: 10,
                                 backgroundColor: this.state.textInput.backgroundColor,
                                 
                             }}
                             placeholder='Текст' 
                             onChangeText={text => this.setState({
                                 item: {
-                                    // text: text, 
-                                    // title: this.state.item.title,
-                                    // key: this.state.item.key
                                     ...this.state.item,
                                     text: text,
-                                }
+                                    
+                                },
+
                             })} 
                             placeholderTextColor="#666666"
                             editable={this.state.isEditable}
                             multiline={true}
+                            onFocus={() => this.setState({
+                                keyboardShow: true,
+                                marginTop: -300,
+                                style: true
+                            })}
+                            onBlur={() => this.setState({
+                                style: false,
+                                keyboardShow: false,
+                                marginTop: 0,
+                            })}
                         >
                             <Text>{this.props.navigation.state.params.dataItem.text}</Text>
                         </TextInput>
                     </View>
                 </View>
-              
+                </ScrollView>
             </View>
         )
         

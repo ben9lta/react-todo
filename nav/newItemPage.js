@@ -1,15 +1,8 @@
 import React, { Component } from 'react';
-import { StyleSheet, AppRegistry, Text, View, TextInput, ScrollView, Switch, Slider, KeyboardAvoidingView,
-        TouchableOpacity, AsyncStorage, Button, Keyboard, Alert, ListView } from 'react-native';
-import App from '../App.js';
+import { StyleSheet, Text, View, TextInput, ScrollView, Switch, Slider, 
+        TouchableOpacity, AsyncStorage, Keyboard, Alert, ListView } from 'react-native';
 import DateTimePicker from "react-native-modal-datetime-picker";
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 
-// import { Label } from 'native-base';
-// import {Textarea} from 'native-base'
-
-// import {DatePicker} from 'native-base'
-// import MyDatePicker from '../components/datepicker/mydatepicker'
 
 class newItemPage extends React.Component {
   
@@ -59,28 +52,17 @@ class newItemPage extends React.Component {
       style: false,
       keyboardShow: false,
       marginTop: 0,
-      // notifications: {
-
-      // },
 
     }
-    this.setSource = this.setSource.bind(this);
     this.showData = this.showData.bind(this);
     this.saveData = this.saveData.bind(this);
     this._keyboardDidShow = this._keyboardDidShow.bind(this)
     this._keyboardDidHide = this._keyboardDidHide.bind(this)
-    //this.showCalendar = this.showCalendar.bind(this);
   }
 
   componentDidMount(){
-    if(!this.state.loading) return
+    // if(!this.state.loading) return
     this.asyncData();   
-
-    // const item = this.state.item
-    // item.time = new Date().getTime() + 5000
-    // this.setState({
-    //   notifications: item
-    // })
 
     this.keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
@@ -118,8 +100,6 @@ class newItemPage extends React.Component {
         const items = JSON.parse(json);
         this.setState({items: json});
         this.setSource(items, items, {loading: false});
-        // console.log(items);
-        // console.log(json);
         
       } catch(e) {
         console.log(e + '-> error')
@@ -135,72 +115,56 @@ class newItemPage extends React.Component {
   showData = async() => {
     let items = await AsyncStorage.getItem('newItem')
     let data = JSON.parse(items)
-    // console.log('------------------------')
-    // console.log(data)
-    // console.log('=-=-=-=-=-=-=-=-=')
-    // console.log(this.state.notifications)
-    // console.log('-=-=-=-=-=-=-=-=-')
-    //console.log(Dpicker)
-    
+
   }
 
   saveData = () => {
+
+    if(!this.state.title){
+      Alert.alert('Необходимо заполнить заголовок')
+      return
+    } else {
+      const key = Date.now()
+
+      const stateItem = {...this.state.item}
+      stateItem.key = key
+      stateItem.title = this.state.title
+      stateItem.text = this.state.text
+      stateItem.complete = this.state.switch.done
+      stateItem.weight = this.state.slider.weight
+      stateItem.notification = this.state.switch.notification
+      stateItem.dateStart = this.state.date.start.date
+      stateItem.dateEnd = this.state.date.end.date
+  
+      this.setState({
+        item: stateItem,
+      })
+  
+      const newItems = [
+        ...this.state.items,
+        {
+          ...stateItem
+          
+        }
+      ]
+      AsyncStorage.setItem('newItem', JSON.stringify(newItems));
+      this.setSource(newItems, newItems, { title: '', text: '',})
+  
+      this.props.navigation.state.params.showData(stateItem)
+      
+      
+      this.props.navigation.navigate('Home', console.log(newItems), {
+          items: this.state.items,
+      });
+  
+  
+      Keyboard.dismiss();
+  
+  
+      Alert.alert('Данные добавлены');
+    }
+
     
-    //AsyncStorage.setItem('newItem', JSON.stringify(newItem));
-
-    if(!this.state.title || !this.state.text) return;
-
-    const key = Date.now()
-
-    const stateItem = {...this.state.item}
-    stateItem.key = key
-    stateItem.title = this.state.title
-    stateItem.text = this.state.text
-    stateItem.complete = this.state.switch.done
-    stateItem.weight = this.state.slider.weight
-    stateItem.notification = this.state.switch.notification
-    stateItem.dateStart = this.state.date.start.date
-    stateItem.dateEnd = this.state.date.end.date
-
-    this.setState({
-      item: stateItem,
-    })
-
-    const newItems = [
-      ...this.state.items,
-      {
-        // key: key,
-        // title: this.state.title,
-        // text: this.state.text,
-        // complete: this.state.switch.done,
-        // weight: this.state.slider.weight,
-        // notification: this.state.switch.notification,
-        // dateStart: this.state.date.start.date,
-        // dateEnd: this.state.date.end.date,
-        ...stateItem
-        
-      }
-    ]
-    AsyncStorage.setItem('newItem', JSON.stringify(newItems));
-    // AsyncStorage.setItem('notification', JSON.stringify(notifItem));
-    this.setSource(newItems, newItems, { title: '', text: '',})
-
-    this.props.navigation.state.params.showData(stateItem)
-    
-    
-    this.props.navigation.navigate('Home', console.log(newItems), {
-        items: this.state.items,
-        // asyncData
-    });
-
-    // this.showData();
-    //this.setSource(data, data, {loading: false});
-
-
-    Keyboard.dismiss();
-
-
-    Alert.alert('Данные добавлены');
   }
 
   setSource(items,itemsDatasource, otherState = {}) {
@@ -251,8 +215,6 @@ class newItemPage extends React.Component {
     this.setState({
       date: state
     })
-    // console.log('================')
-    // console.log(this.state.date)
   };
 
   //=================================================================
@@ -273,7 +235,6 @@ class newItemPage extends React.Component {
     const newDate = date.toString()
     const day = new Date(newDate).getDate(); //Current Date
     const month = (new Date(newDate).getMonth() + 1) < 10 ? `0${(new Date(newDate).getMonth() + 1)}` : new Date(newDate).getMonth() + 1; //Current Month
-    //const month = (new Date(newDate).getMonth() + 1)
     const year = new Date(newDate).getFullYear(); //Current Year
     const thisDate = `${day}/${month}/${year}`
     const state = {...this.state.date}
@@ -294,18 +255,7 @@ class newItemPage extends React.Component {
     this.setState({
       date: state
     })
-    // console.log('================')
-    // console.log(this.state.date)
   };
-
- //=================================================================
- //------------------------- Scroll Down -------------------------//
- //=================================================================
-
-  scrollDown(){
-    console.log(this.refs)
-    //this.refs.scrollView.scrollTo(width*2/3);
-  }
 
  //=================================================================
  //--------------------- Switch Notification ---------------------//
@@ -332,7 +282,6 @@ class newItemPage extends React.Component {
         item: stateItem
       })
     }
-    // console.log(this.state.switch.notification)
   }
 
   //=================================================================
@@ -349,23 +298,23 @@ class newItemPage extends React.Component {
   //=================================================================
   //------------------------- Notification ------------------------//
   //=================================================================
-  scheduleNotification = async () => {
-    //this.state.items
-    if (Platform.OS === 'android') {
-      Expo.Notifications.createChannelAndroidAsync('1', {
-        name: '1',
-        sound: true,
-        vibrate: [0, 250, 250, 250],
-      });
-    }
-    Expo.Notifications.presentLocalNotificationAsync({
-      title: 'New Message',
-      body: 'Message!!!!',
-      android: {
-        channelId: '1',
-      },
-    });
-  };
+  // scheduleNotification = async () => {
+  //   //this.state.items
+  //   if (Platform.OS === 'android') {
+  //     Expo.Notifications.createChannelAndroidAsync('1', {
+  //       name: '1',
+  //       sound: true,
+  //       vibrate: [0, 250, 250, 250],
+  //     });
+  //   }
+  //   Expo.Notifications.presentLocalNotificationAsync({
+  //     title: 'New Message',
+  //     body: 'Message!!!!',
+  //     android: {
+  //       channelId: '1',
+  //     },
+  //   });
+  // };
   //=================================================================
   //=================================================================
 
@@ -388,20 +337,12 @@ class newItemPage extends React.Component {
                 Сохранить
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.header_button}
-              onPress={this.showData}>
-              <Text style={styles.header_button_text}>
-                Показать данные
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
 
         <ScrollView>
         <View 
-          
           { ...this.state.style && this.state.keyboardShow ? style={marginTop: this.state.marginTop} : style={marginTop: 0}}
-          
         >
           <View style={styles.switch_text}>
             <Text style={{width: '50%'}}>Уведомления: {this.state.switch.notification ? ' Включены' : ' Выключены'}</Text>
@@ -409,13 +350,11 @@ class newItemPage extends React.Component {
               onValueChange={() => {this.toggleNotif()}} style={{width: '50%', alignItems:'flex-end', flexDirection: 'row', position: 'relative'}} 
             />
           </View>
-          
           <View style={{ ...styles.switch_done }}>
             <Text style={{ width: '50%' }}>Важность: {this.state.slider.weight}</Text>
             <Slider minimumValue={1} maximumValue={5} onValueChange={(value) => this.sliderWeight(value)}
               value={this.state.slider.weight} style={{ width: '50%' }} step={1}></Slider>
           </View>
-
           <TextInput placeholder='Заголовок' onChangeText={title => this.setState({ title })} style={styles.input}
             placeholderTextColor="#666666"
             onFocus={() => this.setState({
@@ -429,13 +368,7 @@ class newItemPage extends React.Component {
               marginTop: 0,
             })}
           >
-
           </TextInput>
-          {/* <TextInput placeholder='Текст' onChangeText={text => this.setState({ text })} style={styles.input}
-            placeholderTextColor="#666666">
-
-          </TextInput> */}
-
           <View style={styles.col2}>
             <TextInput onFocus={this.showDateTimeStartPicker}
               style={{...styles.input, ...styles.col2_items}}
@@ -450,7 +383,6 @@ class newItemPage extends React.Component {
               value={this.state.date.end.date}
             />
           </View>
-
           <View>
             {
               this.state.date.start.focus ?
@@ -472,15 +404,12 @@ class newItemPage extends React.Component {
                 </DateTimePicker> : null
             }
           </View>
-          
           <View style={{marginLeft: '3%', marginTop: '-10%'}}>
-            
             <TextInput 
               style={{ height: 150, width: '97%', borderColor: 'black', borderWidth: 1, 
                 borderRadius: 10, backgroundColor: '#fff', textAlignVertical: 'top',
                 padding: 10,
                 marginTop: 5,
-                
               }}
               placeholder='Текст' 
               onChangeText={text => this.setState({ text })}
@@ -497,21 +426,15 @@ class newItemPage extends React.Component {
                 keyboardShow: false,
                 marginTop: 0,
               })}
-              
             />
-            
           </View>
-         
         </View> 
         </ScrollView>
       </View>
-      
     )
   }
 }
 export default newItemPage
-
-// AppRegistry.registerComponent('newItemPage', () => App);
 
 const styles = StyleSheet.create({
   container: {
@@ -525,7 +448,6 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#fff', 
-    // color: 'blue',
     color: '#061431',
     borderColor: 'black',
     borderRadius: 10,
@@ -550,11 +472,6 @@ const styles = StyleSheet.create({
     borderColor: '#EDEEF0',
     borderRadius: 5,
     borderWidth: 1,
-      // backgroundColor: '#2BB5FF',
-      // backgroundColor: '#F30000',
-      // backgroundColor: "#2296F3",
-      // borderRadius: 10,
-
   },
   header_button_text: {
     color: '#fff',
@@ -571,8 +488,6 @@ const styles = StyleSheet.create({
   },
   col2_items: {
     width: '45%',
-    // paddingTop: 10,
-    // paddingBottom: 30,
     height: 50
   },
   switch_text: {

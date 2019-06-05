@@ -1,6 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TouchableElement, AsyncStorage, Button, ListView, Platform } from 'react-native';
-import {Permissions, Notifications} from 'expo';
+import { StyleSheet, Text, View, TouchableOpacity, AsyncStorage, ListView, Button} from 'react-native';
+import {CheckBox} from 'native-base'
 
 class Home extends React.Component {
   constructor(props){
@@ -12,38 +12,18 @@ class Home extends React.Component {
       text:'',
       id: 1,
       items:[],
+      checkedItem: [],
       notifications: {},
       dataSource: ds.cloneWithRows(['row 1', 'row 2']),
+      longPressItem: false,
     }
     this.setSource = this.setSource.bind(this);
     this.showData = this.showData.bind(this);
     this.renderData = this.renderData.bind(this);
-    // this.setNotif = this.setNotif.bind(this);
-    // this.sendNotificationImmediately = this.sendNotificationImmediately.bind(this)
-    this.scheduleNotification = this.scheduleNotification.bind(this)
-    // this.saveData = this.saveData.bind(this);
   }
 
   componentDidMount(){
-    
     this.asyncData()
-    // this.sendNotificationImmediately()
-    //console.log(this.state.items)
-    //AsyncStorage.clear();
-
-    // AsyncStorage.getItem('notification').then((json)=>{
-    //   if(json === null) return;
-    //   try {
-    //     const items = JSON.parse(json);
-    //     // this.setNotif(items)
-    //     //console.log(json);
-    //     console.log(items)
-    //     console.log('Загружено notification')
-        
-    //   } catch(e) {
-    //     console.log(e + '-> error')
-    //   }
-    // })
   }
 
   asyncData(){
@@ -52,11 +32,7 @@ class Home extends React.Component {
       try {
         const items = JSON.parse(json);
         this.setState({items: json});
-        this.setSource(items, items, {loading: false});
-        // console.log(items);
-        // console.log(json);
-        console.log('Загружено')
-        
+        this.setSource(items, items, {loading: false});     
       } catch(e) {
         console.log(e + '-> error')
         this.setState({
@@ -66,79 +42,13 @@ class Home extends React.Component {
     })
   }
 
-  askPermissions = async () => {
-    const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
-    let finalStatus = existingStatus;
-    if (existingStatus !== granted) {
-      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-      finalStatus = status;
-    }
-    if (finalStatus !== granted) {
-      return false;
-    }
-    return true;
-  };
-
-  scheduleNotification = async (item) => {
-    if (item.notification) {
-      const id = item.key
-      console.log(id)
-      if (Platform.OS === 'android') {
-        Expo.Notifications.createChannelAndroidAsync(id.toString(), {
-          name: id.toString(),
-          sound: true,
-          vibrate: [0, 250, 250, 250],
-        });
-      }
-  
-      Expo.Notifications.presentLocalNotificationAsync({
-        // title: 'New Message',
-        title: 'Важное дело',
-        body: item.title,
-        android: {
-          channelId: id.toString(),
-        },
-      });
-    } else {
-      console.log('BAN')
-    }
-
-    let currentDate = Date.now();
-    currentDate = new Date(currentDate);
-
-    let year = currentDate.getFullYear();
-    let month = currentDate.getMonth();
-    let date = currentDate.getDate();
-
-    let not0 = new Date(year, month, date, 13,48, 30);
-        not0 = Date.parse(not0);
-  };
-
   showData = async(item) => {
     let items = await AsyncStorage.getItem('newItem')
     let data = JSON.parse(items)
-    // console.log('------------------------')
-    // console.log(data)
     this.setSource(data, data, {loading: false});
-    console.log('***************')
-    console.log(item)
-    console.log('****************')
-    item ? this.scheduleNotification(item) : null
 
-    // this.setNotif(items)
-    // AsyncStorage.setItem('notification', JSON.stringify(items));
-    // let notif = await AsyncStorage.getItem('notification')
-    // let notifData = JSON.parse(notif)
-
-    // console.log('===============NOTIFICATION================')
-    // console.log(this.state.notifications)
-    // console.log('===========================================')
   }
 
-  // setNotif(items){
-  //   this.setState({notifications: items})
-  //   // AsyncStorage.setItem('notification', JSON.stringify(items));
-  // }
 
   setSource(items,itemsDatasource, otherState = {}) {
 
@@ -152,7 +62,6 @@ class Home extends React.Component {
 
   OpenSelectedItem = (data) => {
     this.props.navigation.navigate('selectedItemPage', { data: data });
-    // console.log(data)
   }
 
   renderData = async(_items) => {
@@ -163,8 +72,38 @@ class Home extends React.Component {
   
   }
 
+  changeItems(data, state){
+    //console.log(data)
+    let newItems = state
+    state.map((item, index) => {
+      
+      if (item.key === data.key) {
+        if (index !== -1) {
+          // newItems.splice(index, 1)
+          // newItems.push(data);
+          newItems[index].complete = data.complete
+        }
+      }
+    });
+
+    this.renderData(newItems)
+  }
+
+  handleCheckBox = (data) => {
+    if(false === data.complete){
+      data.complete = true
+    }
+    else 
+    {
+      data.complete = false
+    }
+
+    this.changeItems(data, this.state.items)  
+  }
+
 
   render() {
+
     return (
       <View style={styles.container}>
         {this.state.items.length > 0 ? 
@@ -172,20 +111,42 @@ class Home extends React.Component {
             style={styles.list}
             dataSource={this.state.dataSource}
             renderRow={(data) =>
-            <TouchableOpacity onPress={() => {
-              this.props.navigation.navigate('selectedItemPage', {
-                dataItem: data,
-                allData: this.state.items,
-                showData: this.showData,
-                renderData: this.renderData
-              })
-            }}>
-                <View style={styles.dataView} >
-                  <Text style={styles.dataViewTitle} >
-                    {data.title}
-                  </Text>
-                  <Text>{data.dateStart}</Text>
+              <TouchableOpacity onPress={() => {
+                this.props.navigation.navigate('selectedItemPage', {
+                  dataItem: data,
+                  allData: this.state.items,
+                  showData: this.showData,
+                  renderData: this.renderData
+                })
+              }}
+                onLongPress={() => this.setState({
+                  longPressItem: true
+                })}
+              >
+                <View style={data.complete ? styles.dataViewComplete : styles.dataView} >
+                  <View style={styles.row2}>
+                    <View style={{...styles.colorView, backgroundColor: data.complete ? 'red' : '#447BD4'}} />
+                    <View style={styles.col2}>
+                      <Text style={styles.dataViewTitle} >
+                        {data.title}
+                      </Text>
+                      <Text>{data.dateStart}</Text>
+                    </View>
+                    <View style={styles.rowCenter}>
+                      {this.state.longPressItem ? 
+                      <CheckBox style={{marginRight: 25}} 
+                        checked={data.complete} 
+                        onPress={() => this.handleCheckBox(data)}
+                      >
+                      </CheckBox> 
+                      : 
+                      null
+                      }
+                    </View>
+                  </View>
+                  
                 </View>
+               
             </TouchableOpacity>
             }
           renderSeparator={(sectionId, rowId) => <View key={rowId} style={styles.separator} />}
@@ -198,12 +159,19 @@ class Home extends React.Component {
           color: '#F30000',
           fontSize: 26, width: '100%',}}>Записей нет</Text>
         }
-        <Button title="Показать данные" onPress={() => {this.showData()}}></Button>
-
-        <TouchableOpacity style={styles.bottomButton} onPress={() => this.props.navigation.navigate('newItemPage', { showData: this.showData })}>
+        
+        {this.state.longPressItem ? 
+        <View>
+          <Button title='Принять' onPress={() => this.setState({
+            longPressItem: false
+          })}></Button>
+        </View>
+        : 
+        <TouchableOpacity style={styles.bottomButton} 
+          onPress={() => this.props.navigation.navigate('newItemPage', { showData: this.showData })}>
             <Text style={styles.addText}>+</Text>
-          {/* <Button title="Перейти" onPress={() => this.props.navigation.navigate('newItemPage')} ></Button> */}
         </TouchableOpacity>
+        }
         
       </View>
     );
@@ -235,13 +203,25 @@ const styles = StyleSheet.create({
   separator: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#8E8E8E',
+    backgroundColor: '#000',
   },
   dataView: {
     height: 60,
-    //alignItems: 'center',
-    marginLeft: 12,
+    // marginLeft: 12,
     justifyContent: 'center',
+    backgroundColor: '#E2E4CE'
+  },
+  dataViewComplete: {
+    height: 60,
+    // marginLeft: 10,
+    justifyContent: 'center',
+    // backgroundColor: '#D7D5D5'
+    backgroundColor: '#E2E4CE'
+    
+  },
+  colorView: {
+    // backgroundColor: 'red',
+    paddingLeft: 5,
   },
   dataViewTitle: {
     fontSize: 20,
@@ -257,8 +237,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  addText:{
+  addText: {
     fontSize: 25,
     color: '#fff',
+  },
+  col2: {
+    flex: 1,
+    flexDirection: 'column',
+    paddingTop: 5,
+    paddingLeft: 10,
+  },
+  row2: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  rowCenter: {
+    justifyContent: 'center'
   }
 });
